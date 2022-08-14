@@ -12,6 +12,7 @@
 
 # general package imports
 import cv2
+import open3d as o3d
 import numpy as np
 import torch
 import zlib
@@ -30,7 +31,6 @@ from tools.waymo_reader.simple_waymo_open_dataset_reader import dataset_pb2, lab
 # object detection tools and helper functions
 import misc.objdet_tools as tools
 
-
 # visualize lidar point-cloud
 def show_pcl(pcl):
 
@@ -38,19 +38,55 @@ def show_pcl(pcl):
     #######
     print("student task ID_S1_EX2")
 
+    # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
+
+    global frame_render_loop
+    frame_render_loop = True
     # step 1 : initialize open3d with key callback and create window
+    def skip_to_next_frame(vis):
+        # This callback lets us break out of the simulated visualization.run() loop while still preservering the visualization window
+        global frame_render_loop
+        frame_render_loop = False
+
+    def destroy_vis(vis):
+        global frame_render_loop
+        frame_render_loop = False
+        vis.destroy_window()
+
+    if not show_pcl.is_o3d_initialized:
+        show_pcl.vis = o3d.visualization.VisualizerWithKeyCallback()
+        show_pcl.vis.register_key_callback(262, skip_to_next_frame) # right arrow
+        show_pcl.vis.register_key_callback(256, destroy_vis) #Esc
+        show_pcl.vis.create_window()
     
     # step 2 : create instance of open3d point-cloud class
+    if not show_pcl.is_o3d_initialized:
+        # For add/update_geometry to work, we need to keep the same "pointer"
+        show_pcl.pcd = o3d.geometry.PointCloud()
 
     # step 3 : set points in pcd instance by converting the point-cloud into 3d vectors (using open3d function Vector3dVector)
+    show_pcl.pcd.points = o3d.utility.Vector3dVector(pcl[:,:3])
 
     # step 4 : for the first frame, add the pcd instance to visualization using add_geometry; for all other frames, use update_geometry instead
+    if not show_pcl.is_o3d_initialized:
+        show_pcl.vis.add_geometry(show_pcl.pcd)
+    else:
+        show_pcl.vis.update_geometry(show_pcl.pcd)
     
     # step 5 : visualize point cloud and keep window open until right-arrow is pressed (key-code 262)
+    show_pcl.is_o3d_initialized = True
+
+    # We simulate the Visualization.run() loop here, and use the callback(s) to give control back to the caller without destroying the window
+    while (frame_render_loop):
+        show_pcl.vis.poll_events()
+        show_pcl.vis.update_renderer()
+
+
+# A global flag to initialize o3d only once. This is needed given how show_pcl() is called in a loop (loop_over_dataset.py)
+show_pcl.is_o3d_initialized = False
 
     #######
     ####### ID_S1_EX2 END #######     
-       
 
 # visualize range image
 def show_range_image(frame, lidar_name):
