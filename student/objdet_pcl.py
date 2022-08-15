@@ -135,7 +135,7 @@ def show_range_image(frame, lidar_name):
 
 # util method
 def render_image_map(image_map, name = 'img'):
-    image_map = image_map * 256
+    image_map = image_map * 255
     image_map = image_map.astype(np.uint8)
     cv2.imshow(name, image_map)
     if cv2.waitKey(0) & 0xFF == 27:
