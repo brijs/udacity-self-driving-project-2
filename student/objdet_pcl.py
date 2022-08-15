@@ -183,9 +183,9 @@ def bev_from_pcl(lidar_pcl, configs):
 
     ## step 3 : extract all points with identical x and y such that only the top-most z-coordinate is kept (use numpy.unique)
     ##          also, store the number of points per x,y-cell in a variable named "counts" for use in the next task
-    _, idx_intensity_unique = np.unique(lidar_pcl_top[:,0:2], axis=0, return_index=True)
+    _, idx_intensity_unique, counts = np.unique(lidar_pcl_top[:,0:2], axis=0, return_index=True, return_counts=True)
     lidar_pcl_top = lidar_pcl_top[idx_intensity_unique]
-    #TODO: counts
+    #NOTE: it does not look like the "counts" calculation is needd here. It is already calculated below for density calculation
 
 
     ## step 4 : assign the intensity value of each unique entry in lidar_top_pcl to the intensity map 
@@ -234,12 +234,6 @@ def bev_from_pcl(lidar_pcl, configs):
 
     #######
     ####### ID_S2_EX3 END #######       
-
-    # TODO remove after implementing all of the above steps
-    # lidar_pcl_cpy = []
-    # lidar_pcl_top = []
-    # height_map = []
-    # intensity_map = []
 
     # Compute density layer of the BEV map
     density_map = np.zeros((configs.bev_height + 1, configs.bev_width + 1))
