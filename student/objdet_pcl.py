@@ -133,6 +133,14 @@ def show_range_image(frame, lidar_name):
     return img_range_intensity
 
 
+# util method
+def render_image_map(image_map, name = 'img'):
+    image_map = image_map * 256
+    image_map = image_map.astype(np.uint8)
+    cv2.imshow(name, image_map)
+    if cv2.waitKey(0) & 0xFF == 27:
+        cv2.destroyAllWindows()
+
 # create birds-eye view of lidar data
 def bev_from_pcl(lidar_pcl, configs):
     show_vis = True
@@ -200,11 +208,7 @@ def bev_from_pcl(lidar_pcl, configs):
 
     ## step 5 : temporarily visualize the intensity map using OpenCV to make sure that vehicles separate well from the background
     if show_vis:
-        img_intensity = intensity_map * 256
-        img_intensity = img_intensity.astype(np.uint8)
-        cv2.imshow('img_intensity', img_intensity)
-        if cv2.waitKey(0) & 0xFF == 27:
-            cv2.destroyAllWindows()
+        render_image_map(intensity_map, "img_intesity")
 
     #######
     ####### ID_S2_EX2 END ####### 
@@ -231,11 +235,7 @@ def bev_from_pcl(lidar_pcl, configs):
 
     ## step 3 : temporarily visualize the intensity map using OpenCV to make sure that vehicles separate well from the background
     if show_vis:
-        img_height = height_map * 256
-        img_height = img_height.astype(np.uint8)
-        cv2.imshow('img_height', img_height)
-        if cv2.waitKey(0) & 0xFF == 27:
-            cv2.destroyAllWindows()
+        render_image_map(height_map, "img_height")
 
     #######
     ####### ID_S2_EX3 END #######       
