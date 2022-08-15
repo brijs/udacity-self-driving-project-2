@@ -51,7 +51,7 @@ def show_pcl(pcl):
     def destroy_vis(vis):
         global frame_render_loop
         frame_render_loop = False
-        vis.destroy_window()
+        vis.close() # vis.destroy_window() kills app
 
     if not show_pcl.is_o3d_initialized:
         show_pcl.vis = o3d.visualization.VisualizerWithKeyCallback()
