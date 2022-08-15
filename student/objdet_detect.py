@@ -25,6 +25,7 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 # model-related
 from tools.objdet_models.resnet.models import fpn_resnet
 from tools.objdet_models.resnet.utils.evaluation_utils import decode, post_processing 
+from tools.objdet_models.resnet.utils.torch_utils import _sigmoid
 
 from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darknet
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
@@ -75,6 +76,7 @@ def load_configs_model(model_name='darknet', configs=None):
         configs.hm_size = (152, 152)
         configs.down_ratio = 4
         configs.max_objects = 50
+        configs.conf_thresh = 0.2 # default value based on SFA
 
         configs.imagenet_pretrained = False
         configs.head_conv = 64
@@ -154,7 +156,7 @@ def create_model(configs):
             num_layers = int(arch_parts[-1])
         except:
             raise ValueError
-        
+
         model = fpn_resnet.get_pose_net(num_layers=num_layers, heads=configs.heads,
                                         head_conv=configs.head_conv,
                                         imagenet_pretrained=configs.imagenet_pretrained)
@@ -206,6 +208,13 @@ def detect_objects(input_bev_maps, model, configs):
             ####### ID_S3_EX1-5 START #######     
             #######
             print("student task ID_S3_EX1-5")
+                
+            outputs['cen_offset'] = _sigmoid(outputs['cen_offset'])
+            # detections size (batch_size, K, 10)
+            detections = decode(outputs['hm_cen'], outputs['cen_offset'], outputs['direction'], outputs['z_coor'],
+                                outputs['dim']) #, K=configs.K use default
+            detections = detections.cpu().numpy().astype(np.float32)
+            detections = post_processing(detections, configs)
 
             #######
             ####### ID_S3_EX1-5 END #######     
