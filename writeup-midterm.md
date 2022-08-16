@@ -48,7 +48,9 @@ Below are some example images along with a brief text description.
 - Bumpers
 - Vertical sides of the cars
 
-In general, surfaces with **better relfectivity** register better on radar. Transparent (windows & windshields etc) have low reflectivity and therefore the range intensity is low. However, this transparency seems to help as the shape of the windshield or windows are easily identifiable. 
+In general, surfaces with **better reflectivity** register better on radar. Transparent (windows & windshields etc) have low reflectivity and therefore the range intensity is low. However, this transparency seems to help as the shape of the windshield or windows become easily identifiable. 
+
+Surfaces parallel to the Laser beams (eg car roofs) are also not detected easily, compared to surfaces that are orthogonal to the beam direction (sides of cars).
 
 
 ## Step 2 : Create Birds-Eye View from Lidar PCL
