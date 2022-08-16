@@ -104,7 +104,6 @@ def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5)
     ####### ID_S4_EX2 END #######     
     
     pos_negs = [all_positives, true_positives, false_negatives, false_positives]
-    print(pos_negs)
     det_performance = [ious, center_devs, pos_negs]
     
     return det_performance
