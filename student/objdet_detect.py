@@ -63,7 +63,8 @@ def load_configs_model(model_name='darknet', configs=None):
         #######
         print("student task ID_S3_EX1-3")
 
-        configs.arch = 'fpn_resnet_18'
+        configs.arch = 'fpn_resnet'
+        configs.saved_fn = 'fpn_resnet'
         configs.model_path = os.path.join(parent_path, 'tools', 'objdet_models', 'resnet')
         configs.pretrained_filename = os.path.join(configs.model_path, 'pretrained', 'fpn_resnet_18_epoch_300.pth')
 
@@ -76,7 +77,8 @@ def load_configs_model(model_name='darknet', configs=None):
         configs.hm_size = (152, 152)
         configs.down_ratio = 4
         configs.max_objects = 50
-        configs.conf_thresh = 0.2 # default value based on SFA
+        configs.conf_thresh = 0.5 # default value based on SFA: 0.2
+        configs.batch_size = 1
 
         configs.imagenet_pretrained = False
         configs.head_conv = 64
@@ -153,7 +155,7 @@ def create_model(configs):
 
         try:
             arch_parts = configs.arch.split('_')
-            num_layers = int(arch_parts[-1])
+            num_layers = 18 # int(arch_parts[-1])
         except:
             raise ValueError
 
@@ -210,12 +212,15 @@ def detect_objects(input_bev_maps, model, configs):
             print("student task ID_S3_EX1-5")
                 
             outputs['cen_offset'] = _sigmoid(outputs['cen_offset'])
+            outputs['hm_cen'] = _sigmoid(outputs['hm_cen'])
             # detections size (batch_size, K, 10)
             detections = decode(outputs['hm_cen'], outputs['cen_offset'], outputs['direction'], outputs['z_coor'],
                                 outputs['dim']) #, K=configs.K use default
             detections = detections.cpu().numpy().astype(np.float32)
             detections = post_processing(detections, configs)
 
+            # Only care about Vehicle class
+            detections = detections[0][1]
             #######
             ####### ID_S3_EX1-5 END #######     
 
@@ -228,15 +233,23 @@ def detect_objects(input_bev_maps, model, configs):
     objects = [] 
 
     ## step 1 : check whether there are any detections
-
+    if len(detections) > 0:
         ## step 2 : loop over all detections
-        
+        for det in detections:
+            score, bev_x, bev_y, z, h, bev_w, bev_l, yaw = det
             ## step 3 : perform the conversion using the limits for x, y and z set in the configs structure
-        
+            x = bev_y * (configs.lim_x[1] - configs.lim_x[0]) / configs.bev_height + configs.lim_x[0]
+            y =  (bev_x * (configs.lim_y[1] - configs.lim_y[0]) / configs.bev_width) - (configs.lim_y[1] - configs.lim_y[0])/2.0
+            # z = z + configs.lim_z[0]
+            w = bev_w * (configs.lim_y[1] - configs.lim_y[0]) / configs.bev_width
+            l = bev_l * (configs.lim_x[1] - configs.lim_x[0]) / configs.bev_height
+            # yaw = -yaw
+
             ## step 4 : append the current object to the 'objects' array
+            if (x >= configs.lim_x[0] and x <= configs.lim_x[1]
+                and y >= configs.lim_y[0] and y <= configs.lim_y[1]
+                and z >= configs.lim_z[0] and z <= configs.lim_z[1]):
+                objects.append([1, x, y, z, h, w, l, yaw])
         
-    #######
-    ####### ID_S3_EX2 START #######   
-    
     return objects    
 

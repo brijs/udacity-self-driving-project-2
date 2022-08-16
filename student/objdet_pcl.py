@@ -173,8 +173,8 @@ def bev_from_pcl(lidar_pcl, configs):
     lidar_pcl_cpy[:,1] = np.int_(lidar_pcl_cpy[:,1] / bev_discret_y + (configs.bev_width + 1) / 2)
 
     # step 4 : visualize point-cloud using the function show_pcl from a previous task
-
-    show_pcl(lidar_pcl_cpy)
+    if show_vis:
+        show_pcl(lidar_pcl_cpy)
     
     #######
     ####### ID_S2_EX1 END #######     
@@ -260,5 +260,3 @@ def bev_from_pcl(lidar_pcl, configs):
     bev_maps = torch.from_numpy(bev_maps)  # create tensor from birds-eye view
     input_bev_maps = bev_maps.to(configs.device, non_blocking=True).float()
     return input_bev_maps
-
-
